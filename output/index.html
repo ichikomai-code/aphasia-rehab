@@ -93,11 +93,12 @@
 
         /* イラスト表示エリア */
         .illustration-container {
-            height: 200px;
+            height: 180px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 15px 0;
+            margin-top: 15px;
+            margin-bottom: 10px;
         }
 
         .emoji-display {
@@ -112,6 +113,36 @@
             object-fit: contain;
             border-radius: 12px;
             filter: drop-shadow(0 5px 10px rgba(0,0,0,0.1));
+        }
+
+        /* イラストのすぐ下に表示するパスボタンのエリア */
+        .pass-btn-container {
+            min-height: 45px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* パスボタンのデザイン */
+        .pass-button {
+            padding: 8px 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 2px solid #e74c3c;
+            border-radius: 20px;
+            background-color: #fff0f0;
+            color: var(--danger-color);
+            cursor: pointer;
+            display: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.15);
+        }
+
+        .pass-button:hover {
+            background-color: var(--danger-color);
+            color: white;
+            transform: scale(1.05);
         }
 
         .question-text {
@@ -225,9 +256,9 @@
 
         .hint-content {
             font-size: 1.3rem;
-            letter-spacing: 3px;
             color: #e67e22;
             font-weight: bold;
+            line-height: 1.4;
         }
 
         /* 操作ボタン */
@@ -249,27 +280,6 @@
         .action-button:hover {
             background-color: #27ae60;
             transform: translateY(-2px);
-        }
-
-        /* パスボタンのデザイン */
-        .pass-button {
-            padding: 10px 25px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border: 2px solid #bdc3c7;
-            border-radius: 12px;
-            background-color: #ffffff;
-            color: #7f8c8d;
-            cursor: pointer;
-            margin-top: 10px;
-            display: none;
-            transition: all 0.2s ease;
-        }
-
-        .pass-button:hover {
-            background-color: #f2f3f4;
-            color: var(--danger-color);
-            border-color: var(--danger-color);
         }
 
         /* 音声再生ボタンの補助 */
@@ -355,9 +365,14 @@
             <button class="speak-button" id="speak-question-btn" title="声をきく">🔊</button>
         </div>
         
-        <!-- イラスト表示エリア -->
+        <!-- イラスト表示エリア (画像優先、なければ絵文字) -->
         <div class="illustration-container" id="illustration-container">
             <div class="emoji-display" id="emoji-display">🐕</div>
+        </div>
+
+        <!-- イラストのすぐ下に表示されるパスボタン -->
+        <div class="pass-btn-container">
+            <button class="pass-button" id="pass-btn">パス（こたえをみる） 🔑</button>
         </div>
 
         <!-- 音声入力の状況表示 -->
@@ -380,84 +395,79 @@
             <div class="hint-content" id="hint-content"></div>
         </div>
 
-        <!-- パス（こたえをみる）ボタン -->
-        <div>
-            <button class="pass-button" id="pass-btn">パス（こたえをみる） 🔑</button>
-        </div>
-
         <!-- 次へ進むボタン -->
         <button class="action-button" id="next-btn">つぎへ すすむ ➡️</button>
     </div>
 </div>
 
 <script>
-    // 問題の候補リスト (各レベル20問ずつ。全身絵文字に変更)
+    // 問題の候補リスト (各レベル20問ずつ。言葉の意味ヒントを追加)
     const questionsPool = {
         1: [ // 2文字の言葉 (20問)
-            { emoji: '🐕', answers: ['いぬ', '犬', 'イヌ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「ぬ」', image: 'assets/images/inu.png' },
-            { emoji: '🐈', answers: ['ねこ', '猫', 'ネコ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ね」', hint3: '２文字目は「こ」', image: 'assets/images/neko.png' },
-            { emoji: '🐘', answers: ['ぞう', '象', 'ゾウ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぞ」', hint3: '２文字目は「う」', image: 'assets/images/zou.png' },
-            { emoji: '🐒', answers: ['さる', '猿', 'サル'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「さ」', hint3: '２文字目は「る」', image: 'assets/images/saru.png' },
-            { emoji: '🐙', answers: ['たこ', '蛸', 'タコ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「こ」', image: 'assets/images/tako.png' },
-            { emoji: ' squid', answers: ['いか', '烏賊', 'イカ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「か」', emojiOverride: '🦑', image: 'assets/images/ika.png' },
-            { emoji: '🐢', answers: ['かめ', '亀', 'カメ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「め」', image: 'assets/images/kame.png' },
-            { emoji: '🌂', answers: ['かさ', '傘', 'カサ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「さ」', image: 'assets/images/kasa.png' },
-            { emoji: '📚', answers: ['ほん', '本', 'ホン'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ほ」', hint3: '２文字目は「ん」', image: 'assets/images/hon.png' },
-            { emoji: '🪑', answers: ['いす', '椅子', 'イス'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「す」', image: 'assets/images/isu.png' },
-            { emoji: '👟', answers: ['くつ', '靴', 'クツ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「つ」', image: 'assets/images/kutsu.png' },
-            { emoji: '🔑', answers: ['かぎ', '鍵', 'カギ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ぎ」', image: 'assets/images/kagi.png' },
-            { emoji: '👂', answers: ['みみ', '耳', 'ミミ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「み」', hint3: '２文字目は「み」', image: 'assets/images/mimi.png' },
-            { emoji: '👄', answers: ['くち', '口', 'クチ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「ち」', image: 'assets/images/kuchi.png' },
-            { emoji: '🖊️', answers: ['ぺん', 'ペン'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぺ」', hint3: '２文字目は「ん」', image: 'assets/images/pen.png' },
-            { emoji: '地図', answers: ['ちず', '地図', 'チズ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ち」', hint3: '２文字目は「ず」', emojiOverride: '🗺️', image: 'assets/images/chizu.png' },
-            { emoji: '🔔', answers: ['かね', '鐘', 'カネ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ね」', image: 'assets/images/kane.png' },
-            { emoji: '🧺', answers: ['かご', '籠', 'カゴ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ご」', image: 'assets/images/kago.png' },
-            { emoji: '🪈', answers: ['ふえ', '笛', 'フエ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「え」', image: 'assets/images/fue.png' },
-            { emoji: '🏹', answers: ['ゆみ', '弓', 'ユミ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ゆ」', hint3: '２文字目は「み」', image: 'assets/images/yumi.png' }
+            { emoji: '🐕', answers: ['いぬ', '犬', 'イヌ'], meaning: 'ワンワンと鳴く、かわいい動物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「ぬ」', image: 'assets/images/inu.png' },
+            { emoji: '🐈', answers: ['ねこ', '猫', 'ネコ'], meaning: 'ニャーニャーと鳴く、かわいい動物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ね」', hint3: '２文字目は「こ」', image: 'assets/images/neko.png' },
+            { emoji: '🐘', answers: ['ぞう', '象', 'ゾウ'], meaning: 'お鼻がとても長くて、大きな体の動物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぞ」', hint3: '２文字目は「う」', image: 'assets/images/zou.png' },
+            { emoji: '🐒', answers: ['さる', '猿', 'サル'], meaning: 'バナナが大好きで、木登りが得意な動物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「さ」', hint3: '２文字目は「る」', image: 'assets/images/saru.png' },
+            { emoji: '🐙', answers: ['たこ', '蛸', 'タコ'], meaning: '海に住んでいて、足が８本ある赤い生き物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「こ」', image: 'assets/images/tako.png' },
+            { emoji: ' squid', answers: ['いか', '烏賊', 'イカ'], meaning: '海に住んでいて、三角の頭と１０本の足がある白い生き物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「か」', emojiOverride: '🦑', image: 'assets/images/ika.png' },
+            { emoji: '🐢', answers: ['かめ', '亀', 'カメ'], meaning: '背中に硬い甲羅（こうら）があって、ゆっくり歩く生き物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「め」', image: 'assets/images/kame.png' },
+            { emoji: '🌂', answers: ['かさ', '傘', 'カサ'], meaning: '雨が降ったときに、濡れないように頭の上に差すものです', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「さ」', image: 'assets/images/kasa.png' },
+            { emoji: '📚', answers: ['ほん', '本', 'ホン'], meaning: '文字や絵が書いてあって、めくって読むものです', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ほ」', hint3: '２文字目は「ん」', image: 'assets/images/hon.png' },
+            { emoji: '🪑', answers: ['いす', '椅子', 'イス'], meaning: 'おうちや学校で、お尻を乗せて座る家具です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「す」', image: 'assets/images/isu.png' },
+            { emoji: '👟', answers: ['くつ', '靴', 'クツ'], meaning: 'お外をお散歩するときに、足に履くものです', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「つ」', image: 'assets/images/kutsu.png' },
+            { emoji: '🔑', answers: ['かぎ', '鍵', 'カギ'], meaning: 'ドアや乗り物のロックを開けるための、小さな金属の道具です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ぎ」', image: 'assets/images/kagi.png' },
+            { emoji: '👂', answers: ['みみ', '耳', 'ミミ'], meaning: '人の顔の横についていて、音を聴くための場所です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「み」', hint3: '２文字目は「み」', image: 'assets/images/mimi.png' },
+            { emoji: '👄', answers: ['くち', '口', 'クチ'], meaning: 'ご飯を食べたり、おしゃべりをしたりするときに動かす場所です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「ち」', image: 'assets/images/kuchi.png' },
+            { emoji: '🖊️', answers: ['ぺん', 'ペン'], meaning: 'ノートや紙に、文字や絵を書くための筆記用具です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぺ」', hint3: '２文字目は「ん」', image: 'assets/images/pen.png' },
+            { emoji: '地図', answers: ['ちず', '地図', 'チズ'], meaning: '道や街の場所が描いてある、案内用の図面です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ち」', hint3: '２文字目は「ず」', emojiOverride: '🗺️', image: 'assets/images/chizu.png' },
+            { emoji: '🔔', answers: ['かね', '鐘', 'カネ'], meaning: 'お寺や教会にあって、ゴーンと大きな音が鳴る金属の道具です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ね」', image: 'assets/images/kane.png' },
+            { emoji: '🧺', answers: ['かご', '籠', 'カゴ'], meaning: 'お買い物や、おもちゃの整理に使う、物を入れる入れ物です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ご」', image: 'assets/images/kago.png' },
+            { emoji: '🪈', answers: ['ふえ', '笛', 'フエ'], meaning: '息をふーっと吹き込んで、ピーピーと音を鳴らす楽器です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「え」', image: 'assets/images/fue.png' },
+            { emoji: '🏹', answers: ['ゆみ', '弓', 'ユミ'], meaning: '矢（や）をセットして、遠くに飛ばすための道具です', hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ゆ」', hint3: '２文字目は「み」', image: 'assets/images/yumi.png' }
         ],
         2: [ // 3文字の言葉 (20問)
-            { emoji: '🍎', answers: ['りんご', '林檎', 'リンゴ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「り」', hint3: '２文字目は「ん」', image: 'assets/images/ringo.png' },
-            { emoji: '🍌', answers: ['ばなな', 'バナナ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ば」', hint3: '２文字目は「な」', image: 'assets/images/banana.png' },
-            { emoji: '🚗', answers: ['くるま', '車', 'クルマ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「る」', image: 'assets/images/kuruma.png' },
-            { emoji: '🍉', answers: ['すいか', '西瓜', 'スイカ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「す」', hint3: '２文字目は「い」', image: 'assets/images/suika.png' },
-            { emoji: '🍊', answers: ['みかん', '蜜柑', 'ミカン'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「み」', hint3: '２文字目は「か」', image: 'assets/images/mikan.png' },
-            { emoji: '🍅', answers: ['とまと', 'トマト'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', hint3: '２文字目は「ま」', image: 'assets/images/tomato.png' },
-            { emoji: '👒', answers: ['ぼうし', '帽子', 'ボウシ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぼ」', hint3: '２文字目は「う」', image: 'assets/images/boushi.png' },
-            { emoji: '⌚', answers: ['とけい', '時計', 'トケイ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', hint3: '２文字目は「け」', image: 'assets/images/tokei.png' },
-            { emoji: '🥛', answers: ['こっぷ', 'コップ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「こ」', hint3: '２文字目は「っ」', image: 'assets/images/koppu.png' },
-            { emoji: '🥚', answers: ['たまご', '卵', 'タマゴ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「ま」', image: 'assets/images/tamago.png' },
-            { emoji: '🦒', answers: ['きりん', '麒麟', 'キリン'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「き」', hint3: '２文字目は「り」', image: 'assets/images/kirin.png' },
-            { emoji: '🐬', answers: ['いるか', '海豚', 'イルカ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「る」', image: 'assets/images/iruka.png' },
-            { emoji: '🐳', answers: ['くじら', '鯨', 'クジラ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「じ」', image: 'assets/images/kujira.png' },
-            { emoji: '🐸', answers: ['かえる', '蛙', 'カエル'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「え」', image: 'assets/images/kaeru.png' },
-            { emoji: '🍇', answers: ['ぶどう', '葡萄', 'ブドウ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぶ」', hint3: '２文字目は「ど」', image: 'assets/images/budou.png' },
-            { emoji: '💼', answers: ['かばん', 'カバン', '鞄'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ば」', image: 'assets/images/kaban.png' },
-            { emoji: '✂️', answers: ['はさみ', '鋏', 'ハサミ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「は」', hint3: '２文字目は「さ」', image: 'assets/images/hasami.png' },
-            { emoji: '💊', answers: ['くすり', '薬', 'クスリ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「す」', image: 'assets/images/kusuri.png' },
-            { emoji: '👕', answers: ['しゃつ', 'シャツ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「し」', hint3: '２文字目は「ゃ」', image: 'assets/images/shatsu.png' },
-            { emoji: '🪞', answers: ['かがみ', '鏡', 'カガミ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「が」', image: 'assets/images/kagami.png' }
+            { emoji: '🍎', answers: ['りんご', '林檎', 'リンゴ'], meaning: '赤くて丸い、シャキシャキした甘い木の実（果物）です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「り」', hint3: '２文字目は「ん」', image: 'assets/images/ringo.png' },
+            { emoji: '🍌', answers: ['ばなな', 'バナナ'], meaning: '黄色くて長くて、皮をむいて食べる甘い南国の果物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ば」', hint3: '２文字目は「な」', image: 'assets/images/banana.png' },
+            { emoji: '🚗', answers: ['くるま', '車', 'クルマ'], meaning: 'タイヤが４つあって、道路を走る身近な乗り物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「る」', image: 'assets/images/kuruma.png' },
+            { emoji: '🍉', answers: ['すいか', '西瓜', 'スイカ'], meaning: '夏によく食べる、外が緑のしま模様で中が赤い大きな果物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「す」', hint3: '２文字目は「い」', image: 'assets/images/suika.png' },
+            { emoji: '🍊', answers: ['みかん', '蜜柑', 'ミカン'], meaning: 'こたつに入ってよく食べる、オレンジ色の皮を手でむく果物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「み」', hint3: '２文字目は「か」', image: 'assets/images/mikan.png' },
+            { emoji: '🍅', answers: ['とまと', 'トマト'], meaning: '赤くて丸い、サラダやパスタソースによく入れるお野菜です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', hint3: '２文字目は「ま」', image: 'assets/images/tomato.png' },
+            { emoji: '👒', answers: ['ぼうし', '帽子', 'ボウシ'], meaning: 'お出かけのときに、日差しをよけるために頭に被るものです', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぼ」', hint3: '２文字目は「う」', image: 'assets/images/boushi.png' },
+            { emoji: '⌚', answers: ['とけい', '時計', 'トケイ'], meaning: 'いま何時かがわかる、腕や壁につける道具です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', hint3: '２文字目は「け」', image: 'assets/images/tokei.png' },
+            { emoji: '🥛', answers: ['こっぷ', 'コップ'], meaning: 'お水やジュースを飲むときに、飲み物を注ぐ容器です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「こ」', hint3: '２文字目は「っ」', image: 'assets/images/koppu.png' },
+            { emoji: '🥚', answers: ['たまご', '卵', 'タマゴ'], meaning: 'ニワトリが産む、丸くて白い、目玉焼きなどにする食材です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「ま」', image: 'assets/images/tamago.png' },
+            { emoji: '🦒', answers: ['きりん', '麒麟', 'キリン'], meaning: '首がとっても長くて、高い場所にある木の葉を食べる黄色い動物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「き」', hint3: '２文字目は「り」', image: 'assets/images/kirin.png' },
+            { emoji: '🐬', answers: ['いるか', '海豚', 'イルカ'], meaning: '海でジャンプしたり芸をしたりする、水族館で人気の賢い生き物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「る」', image: 'assets/images/iruka.png' },
+            { emoji: '🐳', answers: ['くじら', '鯨', 'クジラ'], meaning: '海に住んでいる、頭の上から潮（しお）を吹く世界一大きな生き物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「じ」', image: 'assets/images/kujira.png' },
+            { emoji: '🐸', answers: ['かえる', '蛙', 'カエル'], meaning: '雨の日にゲコゲコと鳴いて、ぴょんぴょん跳ねる緑色の生き物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「え」', image: 'assets/images/kaeru.png' },
+            { emoji: '🍇', answers: ['ぶどう', '葡萄', 'ブドウ'], meaning: '紫色の小さな丸い粒がたくさん集まった、甘くてジューシーな果物です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぶ」', hint3: '２文字目は「ど」', image: 'assets/images/budou.png' },
+            { emoji: '💼', answers: ['かばん', 'カバン', '鞄'], meaning: 'お出かけや仕事のときに、書類や荷物を入れて手に持つバッグです', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ば」', image: 'assets/images/kaban.png' },
+            { emoji: '✂️', answers: ['はさみ', '鋏', 'ハサミ'], meaning: '紙や布やひもを、２つの刃でチョキチョキと切る道具です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「は」', hint3: '２文字目は「さ」', image: 'assets/images/hasami.png' },
+            { emoji: '💊', answers: ['くすり', '薬', 'クスリ'], meaning: '体調が悪いときや、病気を治すために水で飲むものです', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「す」', image: 'assets/images/kusuri.png' },
+            { emoji: '👕', answers: ['しゃつ', 'シャツ'], meaning: 'お出かけのときに、頭からかぶったり前ボタンを留めて上半身に着る洋服です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「し」', hint3: '２文字目は「ゃ」', image: 'assets/images/shatsu.png' },
+            { emoji: '🪞', answers: ['かがみ', '鏡', 'カガミ'], meaning: '自分の顔や姿を映して、身だしなみを確認するためのガラスの板です', hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「が」', image: 'assets/images/kagami.png' }
         ],
         3: [ // 4文字の言葉 (20問)
-            { emoji: '✈️', answers: ['ひこうき', '飛行機', 'ヒコウキ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', hint3: '２文字目は「こ」', image: 'assets/images/hikouki.png' },
-            { emoji: '✏️', answers: ['えんぴつ', '鉛筆', 'エンピツ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「え」', hint3: '２文字目は「ん」', image: 'assets/images/enpitsu.png' },
-            { emoji: '🌻', answers: ['ひまわり', '向日葵', 'ヒマワリ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', hint3: '２文字目は「ま」', image: 'assets/images/himawari.png' },
-            { emoji: '🚃', answers: ['でんしゃ', '電車', 'デンシャ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「で」', hint3: '２文字目は「ん」', image: 'assets/images/densha.png' },
-            { emoji: '🚲', answers: ['じてんしゃ', '自転車', 'ジテンシャ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', hint3: '２文字目は「て」', image: 'assets/images/jitensha.png' },
-            { emoji: '🐧', answers: ['ぺんぎん', 'ペンギン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぺ」', hint3: '２文字目は「ん」', image: 'assets/images/pengin.png' },
-            { emoji: '🎈', answers: ['ふうせん', '風船', 'フウセン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「う」', image: 'assets/images/fuusen.png' },
-            { emoji: '🥕', answers: ['にんじん', '人参', 'ニンジン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「に」', hint3: '２文字目は「ん」', image: 'assets/images/ninjin.png' },
-            { emoji: '🧅', answers: ['たまねぎ', '玉ねぎ', 'タマネギ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「ま」', image: 'assets/images/tamanegi.png' },
-            { emoji: '🦫', answers: ['びーばー', 'ビーバー'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「び」', hint3: '２文字目は「ー」', image: 'assets/images/biibaa.png' },
-            { emoji: '🦉', answers: ['ふくろう', 'フクロウ', '梟'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「く」', image: 'assets/images/fukurou.png' },
-            { emoji: '🦋', answers: ['ちょうちょ', '蝶々', 'チョウチョ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ち」', hint3: '２文字目は「ょ」', image: 'assets/images/choucho.png' },
-            { emoji: '🪚', answers: ['のこぎり', '鋸', 'ノコギリ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「の」', hint3: '２文字目は「こ」', image: 'assets/images/nokogiri.png' },
-            { emoji: '🧲', answers: ['じしゃく', '磁石', 'ジシャク'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', hint3: '２文字目は「し」', image: 'assets/images/jishaku.png' },
-            { emoji: '🧼', answers: ['せっけん', '石鹸', 'セッケン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「せ」', hint3: '２文字目は「っ」', image: 'assets/images/sekken.png' },
-            { emoji: '🧽', answers: ['すぽんじ', 'スポンジ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「す」', hint3: '２文字目は「ぽ」', image: 'assets/images/suponji.png' },
-            { emoji: '🍙', answers: ['おにぎり', 'おむすび'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「お」', hint3: '２文字目は「に」', image: 'assets/images/onigiri.png' },
-            { emoji: '🍩', answers: ['どーなつ', 'ドーナツ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ど」', hint3: '２文字目は「ー」', image: 'assets/images/doonatsu.png' },
-            { emoji: '🫑', answers: ['ぴーまん', 'ピーマン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぴ」', hint3: '２文字目は「ー」', image: 'assets/images/piiman.png' },
-            { emoji: '🍯', answers: ['はちみつ', 'ハチミツ', '蜂蜜'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「は」', hint3: '２文字目は「ち」', image: 'assets/images/hachimitsu.png' }
+            { emoji: '✈️', answers: ['ひこうき', '飛行機', 'ヒコウキ'], meaning: '白い羽を広げて空を飛び、遠くの国まで人を運んでくれる大きな乗り物です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', hint3: '２文字目は「こ」', image: 'assets/images/hikouki.png' },
+            { emoji: '✏️', answers: ['えんぴつ', '鉛筆', 'エンピツ'], meaning: '文字を書くための木でできた細い棒で、芯（しん）を削って使う筆記用具です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「え」', hint3: '２文字目は「ん」', image: 'assets/images/enpitsu.png' },
+            { emoji: '🌻', answers: ['ひまわり', '向日葵', 'ヒマワリ'], meaning: '夏にたくさん咲く、お日様の方を向いて咲く大きな黄色いお花です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', hint3: '２文字目は「ま」', image: 'assets/images/himawari.png' },
+            { emoji: '🚃', answers: ['でんしゃ', '電車', 'デンシャ'], meaning: '線路の上をガタンゴトンと走り、たくさんの駅をとおる長い乗り物です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「で」', hint3: '２文字目は「ん」', image: 'assets/images/densha.png' },
+            { emoji: '🚲', answers: ['じてんしゃ', '自転車', 'ジテンシャ'], meaning: 'サドルにまたがり、足でペダルをこいで進む、２つのタイヤがある乗り物です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', hint3: '２文字目は「て」', image: 'assets/images/jitensha.png' },
+            { emoji: '🐧', answers: ['ぺんぎん', 'ペンギン'], meaning: '氷の上をヨチヨチ歩き、海の中をスイスイ高速で泳ぐ鳥の仲間です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぺ」', hint3: '２文字目は「ん」', image: 'assets/images/pengin.png' },
+            { emoji: '🎈', answers: ['ふうせん', '風船', 'フウセン'], meaning: 'ぷーっと息やガスを吹き込んで膨らませる、ふわふわ浮くゴムのおもちゃです', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「う」', image: 'assets/images/fuusen.png' },
+            { emoji: '🥕', answers: ['にんじん', '人参', 'ニンジン'], meaning: 'オレンジ色をした、ウサギも大好きな、土の中で育つ細長いお野菜です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「に」', hint3: '２文字目は「ん」', image: 'assets/images/ninjin.png' },
+            { emoji: '🧅', answers: ['たまねぎ', '玉ねぎ', 'タマネギ'], meaning: '丸くて茶色い皮があり、包丁で刻むと目が痛くて涙が出るお野菜です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「ま」', image: 'assets/images/tamanegi.png' },
+            { emoji: '🦫', answers: ['びーばー', 'ビーバー'], meaning: '川に木を集めて手際よくダム（おうち）を作る、しっぽが平らな動物です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「び」', hint3: '２文字目は「ー」', image: 'assets/images/biibaa.png' },
+            { emoji: '🦉', answers: ['ふくろう', 'フクロウ', '梟'], meaning: '夜に起きて森でホーホーと鳴く、首がぐるっと回る目が大きな鳥です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「く」', image: 'assets/images/fukurou.png' },
+            { emoji: '🦋', answers: ['ちょうちょ', '蝶々', 'チョウチョ'], meaning: 'ひらひらと綺麗な羽で舞って、お花の蜜（みつ）を吸いにくる虫です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ち」', hint3: '２文字目は「ょ」', image: 'assets/images/choucho.png' },
+            { emoji: '🪚', answers: ['のこぎり', '鋸', 'ノコギリ'], meaning: 'ギザギザした平たい鉄の刃で、木や丸太をギコギコと切る大工さんの道具です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「の」', hint3: '２文字目は「こ」', image: 'assets/images/nokogiri.png' },
+            { emoji: '🧲', answers: ['じしゃく', '磁石', 'ジシャク'], meaning: '赤い「N」と青い「S」があって、鉄にピタッとくっつく不思議な石です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', hint3: '２文字目は「し」', image: 'assets/images/jishaku.png' },
+            { emoji: '🧼', answers: ['せっけん', '石鹸', 'セッケン'], meaning: 'おててやお顔を洗うときに、あわあわにして汚れやバイキンを落とす固まりです', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「せ」', hint3: '２文字目は「っ」', image: 'assets/images/sekken.png' },
+            { emoji: '🧽', answers: ['すぽんじ', 'スポンジ'], meaning: 'お皿洗いやお風呂掃除に使う、お水をたっぷり含む柔らかい四角い道具です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「す」', hint3: '２文字目は「ぽ」', image: 'assets/images/suponji.png' },
+            { emoji: '🍙', answers: ['おにぎり', 'おむすび'], meaning: '炊いた温かいご飯を三角に握って、海苔（のり）を巻いた日本の食べ物です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「お」', hint3: '２文字目は「に」', image: 'assets/images/onigiri.png' },
+            { emoji: '🍩', answers: ['どーなつ', 'ドーナツ'], meaning: '油で揚げて砂糖などをまぶした、真ん中にぽっかりと穴があいた甘いお菓子です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ど」', hint3: '２文字目は「ー」', image: 'assets/images/doonatsu.png' },
+            { emoji: '🫑', answers: ['ぴーまん', 'ピーマン'], meaning: '中身が空洞になっていて、緑色をした、少し苦味があるピーッと鳴らないお野菜です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぴ」', hint3: '２文字目は「ー」', image: 'assets/images/piiman.png' },
+            { emoji: '🍯', answers: ['はちみつ', 'ハチミツ', '蜂蜜'], meaning: 'ミツバチたちが集めてきた、パンやヨーグルトにかける甘くて黄色いとろりとした蜜です', hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「は」', hint3: '２文字目は「ち」', image: 'assets/images/hachimitsu.png' }
         ]
     };
 
@@ -660,15 +670,16 @@
             
             // 段階的にヒントを出し、3回間違えたらパスボタンを出す
             if (wrongCount === 1) {
-                hintTitle.innerText = '💡 第１ヒント';
-                hintContent.innerText = q.hint1;
-                speakText('第１ヒントです。' + q.hint1.replace(/〇/g, 'まる') + 'です。');
+                hintTitle.innerText = '💡 第１ヒント：説明と文字数';
+                // 文字数と「言葉の意味ヒント」を両方出す！
+                hintContent.innerText = `${q.hint1} \n （${q.meaning}）`;
+                speakText('第１ヒントです。' + q.hint1.replace(/〇/g, 'まる') + 'で、' + q.meaning);
             } else if (wrongCount === 2) {
-                hintTitle.innerText = '💡 第２ヒント';
+                hintTitle.innerText = '💡 第２ヒント：最初の文字';
                 hintContent.innerText = q.hint2;
                 speakText('第２ヒントです。' + q.hint2);
             } else {
-                hintTitle.innerText = '💡 第３ヒント';
+                hintTitle.innerText = '💡 第３ヒント：２番目の文字';
                 hintContent.innerText = q.hint3;
                 speakText('第３ヒントです。' + q.hint3);
                 // 3回目以降の間違いで、パス（答えを見る）ボタンを出す
