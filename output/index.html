@@ -13,6 +13,7 @@
             --primary-color: #3498db;
             --success-color: #2ecc71;
             --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
             --shadow-color: rgba(0, 0, 0, 0.08);
         }
 
@@ -90,7 +91,7 @@
             overflow: hidden;
         }
 
-        /* イラスト表示エリア（画像または絵文字） */
+        /* イラスト表示エリア */
         .illustration-container {
             height: 200px;
             display: flex;
@@ -149,7 +150,7 @@
 
         /* 音声認識中のアニメーション */
         .mic-button.listening {
-            background-color: #e74c3c;
+            background-color: var(--danger-color);
             box-shadow: 0 0 0 15px rgba(231, 76, 60, 0.3);
             animation: pulse 1.5s infinite;
         }
@@ -192,6 +193,11 @@
 
         .result-success {
             color: var(--success-color);
+            animation: popIn 0.3s ease;
+        }
+
+        .result-info {
+            color: var(--primary-color);
             animation: popIn 0.3s ease;
         }
 
@@ -243,6 +249,27 @@
         .action-button:hover {
             background-color: #27ae60;
             transform: translateY(-2px);
+        }
+
+        /* パスボタンのデザイン */
+        .pass-button {
+            padding: 10px 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: 2px solid #bdc3c7;
+            border-radius: 12px;
+            background-color: #ffffff;
+            color: #7f8c8d;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+            transition: all 0.2s ease;
+        }
+
+        .pass-button:hover {
+            background-color: #f2f3f4;
+            color: var(--danger-color);
+            border-color: var(--danger-color);
         }
 
         /* 音声再生ボタンの補助 */
@@ -328,7 +355,7 @@
             <button class="speak-button" id="speak-question-btn" title="声をきく">🔊</button>
         </div>
         
-        <!-- イラスト表示エリア (画像優先、なければ絵文字) -->
+        <!-- イラスト表示エリア -->
         <div class="illustration-container" id="illustration-container">
             <div class="emoji-display" id="emoji-display">🐕</div>
         </div>
@@ -349,8 +376,13 @@
 
         <!-- ヒント表示 -->
         <div class="hint-card" id="hint-card">
-            <div class="hint-title">💡 やさしいヒント</div>
+            <div class="hint-title" id="hint-title">💡 やさしいヒント</div>
             <div class="hint-content" id="hint-content"></div>
+        </div>
+
+        <!-- パス（こたえをみる）ボタン -->
+        <div>
+            <button class="pass-button" id="pass-btn">パス（こたえをみる） 🔑</button>
         </div>
 
         <!-- 次へ進むボタン -->
@@ -359,73 +391,73 @@
 </div>
 
 <script>
-    // 問題の候補リスト (各レベル20問ずつ定義。顔だけでなく、なるべく全身の絵文字を採用)
+    // 問題の候補リスト (各レベル20問ずつ。全身絵文字に変更)
     const questionsPool = {
-        1: [ // 2文字の言葉 (20問) - 🐕 や 🐈 などの全身絵文字に変更
-            { emoji: '🐕', answers: ['いぬ', '犬', 'イヌ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', image: 'assets/images/inu.png' },
-            { emoji: '🐈', answers: ['ねこ', '猫', 'ネコ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ね」', image: 'assets/images/neko.png' },
-            { emoji: '🐘', answers: ['ぞう', '象', 'ゾウ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぞ」', image: 'assets/images/zou.png' },
-            { emoji: '🐒', answers: ['さる', '猿', 'サル'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「さ」', image: 'assets/images/saru.png' },
-            { emoji: '🐙', answers: ['たこ', '蛸', 'タコ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「た」', image: 'assets/images/tako.png' },
-            { emoji: ' squid', answers: ['いか', '烏賊', 'イカ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', emojiOverride: '🦑', image: 'assets/images/ika.png' },
-            { emoji: '🐢', answers: ['かめ', '亀', 'カメ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', image: 'assets/images/kame.png' },
-            { emoji: '🌂', answers: ['かさ', '傘', 'カサ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', image: 'assets/images/kasa.png' },
-            { emoji: '📚', answers: ['ほん', '本', 'ホン'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ほ」', image: 'assets/images/hon.png' },
-            { emoji: '🪑', answers: ['いす', '椅子', 'イス'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', image: 'assets/images/isu.png' },
-            { emoji: '👟', answers: ['くつ', '靴', 'クツ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', image: 'assets/images/kutsu.png' },
-            { emoji: '🔑', answers: ['かぎ', '鍵', 'カギ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', image: 'assets/images/kagi.png' },
-            { emoji: '👂', answers: ['みみ', '耳', 'ミミ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「み」', image: 'assets/images/mimi.png' },
-            { emoji: '👄', answers: ['くち', '口', 'クチ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', image: 'assets/images/kuchi.png' },
-            { emoji: '🖊️', answers: ['ぺん', 'ペン'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぺ」', image: 'assets/images/pen.png' },
-            { emoji: '地図', answers: ['ちず', '地図', 'チズ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ち」', emojiOverride: '🗺️', image: 'assets/images/chizu.png' },
-            { emoji: '🔔', answers: ['かね', '鐘', 'カネ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', image: 'assets/images/kane.png' },
-            { emoji: '🧺', answers: ['かご', '籠', 'カゴ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', image: 'assets/images/kago.png' },
-            { emoji: '🪈', answers: ['ふえ', '笛', 'フエ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ふ」', image: 'assets/images/fue.png' },
-            { emoji: '🏹', answers: ['ゆみ', '弓', 'ユミ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ゆ」', image: 'assets/images/yumi.png' }
+        1: [ // 2文字の言葉 (20問)
+            { emoji: '🐕', answers: ['いぬ', '犬', 'イヌ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「ぬ」', image: 'assets/images/inu.png' },
+            { emoji: '🐈', answers: ['ねこ', '猫', 'ネコ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ね」', hint3: '２文字目は「こ」', image: 'assets/images/neko.png' },
+            { emoji: '🐘', answers: ['ぞう', '象', 'ゾウ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぞ」', hint3: '２文字目は「う」', image: 'assets/images/zou.png' },
+            { emoji: '🐒', answers: ['さる', '猿', 'サル'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「さ」', hint3: '２文字目は「る」', image: 'assets/images/saru.png' },
+            { emoji: '🐙', answers: ['たこ', '蛸', 'タコ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「こ」', image: 'assets/images/tako.png' },
+            { emoji: ' squid', answers: ['いか', '烏賊', 'イカ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「か」', emojiOverride: '🦑', image: 'assets/images/ika.png' },
+            { emoji: '🐢', answers: ['かめ', '亀', 'カメ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「め」', image: 'assets/images/kame.png' },
+            { emoji: '🌂', answers: ['かさ', '傘', 'カサ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「さ」', image: 'assets/images/kasa.png' },
+            { emoji: '📚', answers: ['ほん', '本', 'ホン'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ほ」', hint3: '２文字目は「ん」', image: 'assets/images/hon.png' },
+            { emoji: '🪑', answers: ['いす', '椅子', 'イス'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「す」', image: 'assets/images/isu.png' },
+            { emoji: '👟', answers: ['くつ', '靴', 'クツ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「つ」', image: 'assets/images/kutsu.png' },
+            { emoji: '🔑', answers: ['かぎ', '鍵', 'カギ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ぎ」', image: 'assets/images/kagi.png' },
+            { emoji: '👂', answers: ['みみ', '耳', 'ミミ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「み」', hint3: '２文字目は「み」', image: 'assets/images/mimi.png' },
+            { emoji: '👄', answers: ['くち', '口', 'クチ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「ち」', image: 'assets/images/kuchi.png' },
+            { emoji: '🖊️', answers: ['ぺん', 'ペン'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ぺ」', hint3: '２文字目は「ん」', image: 'assets/images/pen.png' },
+            { emoji: '地図', answers: ['ちず', '地図', 'チズ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ち」', hint3: '２文字目は「ず」', emojiOverride: '🗺️', image: 'assets/images/chizu.png' },
+            { emoji: '🔔', answers: ['かね', '鐘', 'カネ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ね」', image: 'assets/images/kane.png' },
+            { emoji: '🧺', answers: ['かご', '籠', 'カゴ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ご」', image: 'assets/images/kago.png' },
+            { emoji: '🪈', answers: ['ふえ', '笛', 'フエ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「え」', image: 'assets/images/fue.png' },
+            { emoji: '🏹', answers: ['ゆみ', '弓', 'ユミ'], hint1: '〇 〇 (２文字)', hint2: '最初の文字は「ゆ」', hint3: '２文字目は「み」', image: 'assets/images/yumi.png' }
         ],
         2: [ // 3文字の言葉 (20問)
-            { emoji: '🍎', answers: ['りんご', '林檎', 'リンゴ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「り」', image: 'assets/images/ringo.png' },
-            { emoji: '🍌', answers: ['ばなな', 'バナナ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ば」', image: 'assets/images/banana.png' },
-            { emoji: '🚗', answers: ['くるま', '車', 'クルマ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', image: 'assets/images/kuruma.png' },
-            { emoji: '🍉', answers: ['すいか', '西瓜', 'スイカ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「す」', image: 'assets/images/suika.png' },
-            { emoji: '🍊', answers: ['みかん', '蜜柑', 'ミカン'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「み」', image: 'assets/images/mikan.png' },
-            { emoji: '🍅', answers: ['とまと', 'トマト'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', image: 'assets/images/tomato.png' },
-            { emoji: '👒', answers: ['ぼうし', '帽子', 'ボウシ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぼ」', image: 'assets/images/boushi.png' },
-            { emoji: '⌚', answers: ['とけい', '時計', 'トケイ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', image: 'assets/images/tokei.png' },
-            { emoji: '🥛', answers: ['こっぷ', 'コップ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「こ」', image: 'assets/images/koppu.png' },
-            { emoji: '🥚', answers: ['たまご', '卵', 'タマゴ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「た」', image: 'assets/images/tamago.png' },
-            { emoji: '🦒', answers: ['きりん', '麒麟', 'キリン'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「き」', image: 'assets/images/kirin.png' },
-            { emoji: '🐬', answers: ['いるか', '海豚', 'イルカ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「い」', image: 'assets/images/iruka.png' },
-            { emoji: '🐳', answers: ['くじら', '鯨', 'クジラ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', image: 'assets/images/kujira.png' },
-            { emoji: '🐸', answers: ['かえる', '蛙', 'カエル'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', image: 'assets/images/kaeru.png' },
-            { emoji: '🍇', answers: ['ぶどう', '葡萄', 'ブドウ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぶ」', image: 'assets/images/budou.png' },
-            { emoji: '💼', answers: ['かばん', 'カバン', '鞄'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', image: 'assets/images/kaban.png' },
-            { emoji: '✂️', answers: ['はさみ', '鋏', 'ハサミ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「は」', image: 'assets/images/hasami.png' },
-            { emoji: '💊', answers: ['くすり', '薬', 'クスリ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', image: 'assets/images/kusuri.png' },
-            { emoji: '👕', answers: ['しゃつ', 'シャツ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「し」', image: 'assets/images/shatsu.png' },
-            { emoji: '🪞', answers: ['かがみ', '鏡', 'カガミ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', image: 'assets/images/kagami.png' }
+            { emoji: '🍎', answers: ['りんご', '林檎', 'リンゴ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「り」', hint3: '２文字目は「ん」', image: 'assets/images/ringo.png' },
+            { emoji: '🍌', answers: ['ばなな', 'バナナ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ば」', hint3: '２文字目は「な」', image: 'assets/images/banana.png' },
+            { emoji: '🚗', answers: ['くるま', '車', 'クルマ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「る」', image: 'assets/images/kuruma.png' },
+            { emoji: '🍉', answers: ['すいか', '西瓜', 'スイカ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「す」', hint3: '２文字目は「い」', image: 'assets/images/suika.png' },
+            { emoji: '🍊', answers: ['みかん', '蜜柑', 'ミカン'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「み」', hint3: '２文字目は「か」', image: 'assets/images/mikan.png' },
+            { emoji: '🍅', answers: ['とまと', 'トマト'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', hint3: '２文字目は「ま」', image: 'assets/images/tomato.png' },
+            { emoji: '👒', answers: ['ぼうし', '帽子', 'ボウシ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぼ」', hint3: '２文字目は「う」', image: 'assets/images/boushi.png' },
+            { emoji: '⌚', answers: ['とけい', '時計', 'トケイ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「と」', hint3: '２文字目は「け」', image: 'assets/images/tokei.png' },
+            { emoji: '🥛', answers: ['こっぷ', 'コップ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「こ」', hint3: '２文字目は「っ」', image: 'assets/images/koppu.png' },
+            { emoji: '🥚', answers: ['たまご', '卵', 'タマゴ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「ま」', image: 'assets/images/tamago.png' },
+            { emoji: '🦒', answers: ['きりん', '麒麟', 'キリン'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「き」', hint3: '２文字目は「り」', image: 'assets/images/kirin.png' },
+            { emoji: '🐬', answers: ['いるか', '海豚', 'イルカ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「い」', hint3: '２文字目は「る」', image: 'assets/images/iruka.png' },
+            { emoji: '🐳', answers: ['くじら', '鯨', 'クジラ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「じ」', image: 'assets/images/kujira.png' },
+            { emoji: '🐸', answers: ['かえる', '蛙', 'カエル'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「え」', image: 'assets/images/kaeru.png' },
+            { emoji: '🍇', answers: ['ぶどう', '葡萄', 'ブドウ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「ぶ」', hint3: '２文字目は「ど」', image: 'assets/images/budou.png' },
+            { emoji: '💼', answers: ['かばん', 'カバン', '鞄'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「ば」', image: 'assets/images/kaban.png' },
+            { emoji: '✂️', answers: ['はさみ', '鋏', 'ハサミ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「は」', hint3: '２文字目は「さ」', image: 'assets/images/hasami.png' },
+            { emoji: '💊', answers: ['くすり', '薬', 'クスリ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「く」', hint3: '２文字目は「す」', image: 'assets/images/kusuri.png' },
+            { emoji: '👕', answers: ['しゃつ', 'シャツ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「し」', hint3: '２文字目は「ゃ」', image: 'assets/images/shatsu.png' },
+            { emoji: '🪞', answers: ['かがみ', '鏡', 'カガミ'], hint1: '〇 〇 〇 (３文字)', hint2: '最初の文字は「か」', hint3: '２文字目は「が」', image: 'assets/images/kagami.png' }
         ],
         3: [ // 4文字の言葉 (20問)
-            { emoji: '✈️', answers: ['ひこうき', '飛行機', 'ヒコウキ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', image: 'assets/images/hikouki.png' },
-            { emoji: '✏️', answers: ['えんぴつ', '鉛筆', 'エンピツ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「え」', image: 'assets/images/enpitsu.png' },
-            { emoji: '🌻', answers: ['ひまわり', '向日葵', 'ヒマワリ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', image: 'assets/images/himawari.png' },
-            { emoji: '🚃', answers: ['でんしゃ', '電車', 'デンシャ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「で」', image: 'assets/images/densha.png' },
-            { emoji: '🚲', answers: ['じてんしゃ', '自転車', 'ジテンシャ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', image: 'assets/images/jitensha.png' },
-            { emoji: '🐧', answers: ['ぺんぎん', 'ペンギン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぺ」', image: 'assets/images/pengin.png' },
-            { emoji: '🎈', answers: ['ふうせん', '風船', 'フウセン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', image: 'assets/images/fuusen.png' },
-            { emoji: '🥕', answers: ['にんじん', '人参', 'ニンジン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「に」', image: 'assets/images/ninjin.png' },
-            { emoji: '🧅', answers: ['たまねぎ', '玉ねぎ', 'タマネギ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「た」', image: 'assets/images/tamanegi.png' },
-            { emoji: '🦫', answers: ['びーばー', 'ビーバー'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「び」', image: 'assets/images/biibaa.png' },
-            { emoji: '🦉', answers: ['ふくろう', 'フクロウ', '梟'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', image: 'assets/images/fukurou.png' },
-            { emoji: '🦋', answers: ['ちょうちょ', '蝶々', 'チョウチョ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ち」', image: 'assets/images/choucho.png' },
-            { emoji: '🪚', answers: ['のこぎり', '鋸', 'ノコギリ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「の」', image: 'assets/images/nokogiri.png' },
-            { emoji: '🧲', answers: ['じしゃく', '磁石', 'ジシャク'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', image: 'assets/images/jishaku.png' },
-            { emoji: '🧼', answers: ['せっけん', '石鹸', 'セッケン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「せ」', image: 'assets/images/sekken.png' },
-            { emoji: '🧽', answers: ['すぽんじ', 'スポンジ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「す」', image: 'assets/images/suponji.png' },
-            { emoji: '🍙', answers: ['おにぎり', 'おむすび'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「お」', image: 'assets/images/onigiri.png' },
-            { emoji: '🍩', answers: ['どーなつ', 'ドーナツ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ど」', image: 'assets/images/doonatsu.png' },
-            { emoji: '🫑', answers: ['ぴーまん', 'ピーマン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぴ」', image: 'assets/images/piiman.png' },
-            { emoji: '🍯', answers: ['はちみつ', 'ハチミツ', '蜂蜜'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「は」', image: 'assets/images/hachimitsu.png' }
+            { emoji: '✈️', answers: ['ひこうき', '飛行機', 'ヒコウキ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', hint3: '２文字目は「こ」', image: 'assets/images/hikouki.png' },
+            { emoji: '✏️', answers: ['えんぴつ', '鉛筆', 'エンピツ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「え」', hint3: '２文字目は「ん」', image: 'assets/images/enpitsu.png' },
+            { emoji: '🌻', answers: ['ひまわり', '向日葵', 'ヒマワリ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ひ」', hint3: '２文字目は「ま」', image: 'assets/images/himawari.png' },
+            { emoji: '🚃', answers: ['でんしゃ', '電車', 'デンシャ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「で」', hint3: '２文字目は「ん」', image: 'assets/images/densha.png' },
+            { emoji: '🚲', answers: ['じてんしゃ', '自転車', 'ジテンシャ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', hint3: '２文字目は「て」', image: 'assets/images/jitensha.png' },
+            { emoji: '🐧', answers: ['ぺんぎん', 'ペンギン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぺ」', hint3: '２文字目は「ん」', image: 'assets/images/pengin.png' },
+            { emoji: '🎈', answers: ['ふうせん', '風船', 'フウセン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「う」', image: 'assets/images/fuusen.png' },
+            { emoji: '🥕', answers: ['にんじん', '人参', 'ニンジン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「に」', hint3: '２文字目は「ん」', image: 'assets/images/ninjin.png' },
+            { emoji: '🧅', answers: ['たまねぎ', '玉ねぎ', 'タマネギ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「た」', hint3: '２文字目は「ま」', image: 'assets/images/tamanegi.png' },
+            { emoji: '🦫', answers: ['びーばー', 'ビーバー'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「び」', hint3: '２文字目は「ー」', image: 'assets/images/biibaa.png' },
+            { emoji: '🦉', answers: ['ふくろう', 'フクロウ', '梟'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ふ」', hint3: '２文字目は「く」', image: 'assets/images/fukurou.png' },
+            { emoji: '🦋', answers: ['ちょうちょ', '蝶々', 'チョウチョ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ち」', hint3: '２文字目は「ょ」', image: 'assets/images/choucho.png' },
+            { emoji: '🪚', answers: ['のこぎり', '鋸', 'ノコギリ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「の」', hint3: '２文字目は「こ」', image: 'assets/images/nokogiri.png' },
+            { emoji: '🧲', answers: ['じしゃく', '磁石', 'ジシャク'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「じ」', hint3: '２文字目は「し」', image: 'assets/images/jishaku.png' },
+            { emoji: '🧼', answers: ['せっけん', '石鹸', 'セッケン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「せ」', hint3: '２文字目は「っ」', image: 'assets/images/sekken.png' },
+            { emoji: '🧽', answers: ['すぽんじ', 'スポンジ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「す」', hint3: '２文字目は「ぽ」', image: 'assets/images/suponji.png' },
+            { emoji: '🍙', answers: ['おにぎり', 'おむすび'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「お」', hint3: '２文字目は「に」', image: 'assets/images/onigiri.png' },
+            { emoji: '🍩', answers: ['どーなつ', 'ドーナツ'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ど」', hint3: '２文字目は「ー」', image: 'assets/images/doonatsu.png' },
+            { emoji: '🫑', answers: ['ぴーまん', 'ピーマン'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「ぴ」', hint3: '２文字目は「ー」', image: 'assets/images/piiman.png' },
+            { emoji: '🍯', answers: ['はちみつ', 'ハチミツ', '蜂蜜'], hint1: '〇 〇 〇 〇 (４文字)', hint2: '最初の文字は「は」', hint3: '２文字目は「ち」', image: 'assets/images/hachimitsu.png' }
         ]
     };
 
@@ -446,8 +478,10 @@
     const recognizedWord = document.getElementById('recognized-word');
     const resultContainer = document.getElementById('result-container');
     const hintCard = document.getElementById('hint-card');
+    const hintTitle = document.getElementById('hint-title');
     const hintContent = document.getElementById('hint-content');
     const nextBtn = document.getElementById('next-btn');
+    const passBtn = document.getElementById('pass-btn');
     const speakQuestionBtn = document.getElementById('speak-question-btn');
     const levelUpModal = document.getElementById('level-up-modal');
     const levelUpText = document.getElementById('level-up-text');
@@ -456,7 +490,6 @@
     // 配列をランダムにシャッフルし、指定の件数を取り出す関数
     function getRandomQuestions(level, count = 10) {
         const pool = [...questionsPool[level]];
-        // フィッシャー・イェーツのシャッフル
         for (let i = pool.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [pool[i], pool[j]] = [pool[j], pool[i]];
@@ -527,7 +560,6 @@
         currentLevel = level;
         correctCount = 0;
         currentQuestionIdx = 0;
-        // 20問の中からランダムに10問を抽出する！
         activeQuestions = getRandomQuestions(currentLevel, 10);
         loadQuestion();
     }
@@ -536,23 +568,20 @@
     function loadQuestion() {
         const q = activeQuestions[currentQuestionIdx];
 
-        // イラスト表示を更新 (もし assets/images/ に画像があればそれを表示し、なければ絵文字を表示する)
+        // イラスト表示を更新 (画像優先、なければ絵文字)
         illustrationContainer.innerHTML = '';
         const img = new Image();
         img.src = q.image;
         img.className = 'image-display';
         img.alt = q.answers[0];
         
-        // 画像ロード成功時は画像を表示
         img.onload = () => {
             illustrationContainer.appendChild(img);
         };
-        // 画像ロード失敗時、または画像がない時は絵文字を表示
         img.onerror = () => {
             const emojiDiv = document.createElement('div');
             emojiDiv.className = 'emoji-display';
             emojiDiv.id = 'emoji-display';
-            // 特殊な絵文字表示用の上書きがあればそれを使う (いか🦑 などのバグ回避用)
             emojiDiv.innerText = q.emojiOverride || q.emoji;
             illustrationContainer.appendChild(emojiDiv);
         };
@@ -563,6 +592,8 @@
         resultContainer.innerHTML = '';
         hintCard.style.display = 'none';
         nextBtn.style.display = 'none';
+        passBtn.style.display = 'none';
+        micBtn.style.display = 'inline-flex';
         wrongCount = 0;
 
         // レベルと進捗の更新
@@ -574,13 +605,12 @@
         }, 500);
     }
 
-    // 進捗（スコアやゲージ）の表示を更新する
+    // 進捗の表示を更新する
     function updateProgressUI() {
         const levelNames = { 1: 'レベル 1：２文字', 2: 'レベル 2：３文字', 3: 'レベル 3：４文字' };
         levelBadge.innerText = levelNames[currentLevel];
         progressText.innerText = `せいかい： ${correctCount} / 10`;
 
-        // ゲージの幅を更新
         const percentage = (correctCount / 10) * 100;
         progressBarFill.style.width = `${percentage}%`;
     }
@@ -613,29 +643,56 @@
             correctCount++;
             updateProgressUI();
 
-            // 10問正解したかチェック
             if (correctCount >= 10) {
-                setTimeout(showLevelUp, 1500); // 少し間を置いてレベルアップ画面を出す
+                setTimeout(showLevelUp, 1500);
             } else {
                 nextBtn.style.display = 'inline-block';
             }
             hintCard.style.display = 'none';
+            passBtn.style.display = 'none';
         } else {
-            // 不正解・聞き取りミスの場合
+            // 不正解の場合
             wrongCount++;
             resultContainer.innerHTML = '<span style="color: #e74c3c;">おしい！</span>';
             statusMessage.innerText = 'もう一回チャレンジしてみましょう';
             
             hintCard.style.display = 'block';
+            
+            // 段階的にヒントを出し、3回間違えたらパスボタンを出す
             if (wrongCount === 1) {
+                hintTitle.innerText = '💡 第１ヒント';
                 hintContent.innerText = q.hint1;
-                speakText('ヒントです。' + q.hint1.replace(/〇/g, 'まる') + 'です。');
-            } else {
+                speakText('第１ヒントです。' + q.hint1.replace(/〇/g, 'まる') + 'です。');
+            } else if (wrongCount === 2) {
+                hintTitle.innerText = '💡 第２ヒント';
                 hintContent.innerText = q.hint2;
-                speakText('ヒントです。' + q.hint2);
+                speakText('第２ヒントです。' + q.hint2);
+            } else {
+                hintTitle.innerText = '💡 第３ヒント';
+                hintContent.innerText = q.hint3;
+                speakText('第３ヒントです。' + q.hint3);
+                // 3回目以降の間違いで、パス（答えを見る）ボタンを出す
+                passBtn.style.display = 'inline-block';
             }
         }
     }
+
+    // パス（答えを見る）ボタンを押したときの処理
+    passBtn.addEventListener('click', () => {
+        const q = activeQuestions[currentQuestionIdx];
+        const answerText = q.answers[0]; // ひらがなの答え
+
+        // 答えを表示する
+        resultContainer.innerHTML = `<span class="result-info">答えは 「${answerText}」 です 🔑</span>`;
+        statusMessage.innerText = '答えを確認して、次に進みましょう';
+        speakText(`こたえは、 ${answerText} です。`);
+
+        // マイクボタンとパスボタンを隠し、次へ進むボタンを出す
+        micBtn.style.display = 'none';
+        passBtn.style.display = 'none';
+        hintCard.style.display = 'none';
+        nextBtn.style.display = 'inline-block';
+    });
 
     // レベルアップのお祝い画面を出す
     function showLevelUp() {
@@ -647,7 +704,6 @@
             levelUpText.innerHTML = `おめでとうございます！🎉<br>レベル ${currentLevel} をクリアしました！<br>次は ${targetCharCount} の言葉に挑戦しましょう！`;
             speakText('レベルアップ！おめでとうございます！つぎは' + targetCharCount + 'の言葉に挑戦しましょう！');
         } else {
-            // レベル3（最終レベル）をクリアしたとき
             levelUpText.innerHTML = `おめでとうございます！🎉🎉<br>すべてのレベルをクリアしました！<br>すばらしいリハビリでしたね！`;
             speakText('おめでとうございます！すべてのレベルをクリアしました！素晴らしいリハビリでした！');
             startNextLevelBtn.innerText = 'もういちど最初からあそぶ 🔄';
@@ -661,14 +717,12 @@
         if (currentLevel < 3) {
             startLevel(currentLevel + 1);
         } else {
-            // 最初からやり直す
             startLevel(1);
         }
     });
 
     // 「つぎへすすむ」ボタンを押したとき
     nextBtn.addEventListener('click', () => {
-        // 残り問題がある限り次に進む (正解が10問未満なら)
         currentQuestionIdx = (currentQuestionIdx + 1) % activeQuestions.length;
         loadQuestion();
     });
