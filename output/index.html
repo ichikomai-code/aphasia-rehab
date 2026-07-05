@@ -512,7 +512,7 @@
             <span class="level-badge" id="level-badge">レベル 1：２文字</span>
         </div>
         <div style="text-align: right; flex-grow: 1; margin-left: 20px;">
-            <div class="progress-text" id="progress-text">せいかい： 0 / 10</div>
+            <div class="progress-text" id="progress-text">正解： 0 / 10</div>
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="progress-bar-fill"></div>
             </div>
@@ -758,7 +758,7 @@
             isListening = true;
             micBtn.classList.add('listening');
             statusMessage.innerText = 'どうぞ、お話しください... 🎙️';
-            recognizedWord.innerText = '（きいています）';
+            recognizedWord.innerText = '（聞いています）';
             resultContainer.innerHTML = '';
         };
 
@@ -984,8 +984,8 @@
             let basePraise = "";
             let audioPraise = "";
             if (correctCount < 2) {
-                basePraise = "🎯 せいかい！ その調子！";
-                audioPraise = "せいかい！ その調子です！";
+                basePraise = "🎯 正解！ その調子！";
+                audioPraise = "正解！ その調子です！";
             } else if (correctCount < 5) {
                 basePraise = "🎯 大正解！ 素晴らしいです！";
                 audioPraise = "大正解！ 素晴らしいです！";
