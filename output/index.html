@@ -835,13 +835,14 @@
         // イラスト表示を更新 (画像優先、なければ絵文字)
         illustrationContainer.innerHTML = '';
         const img = new Image();
-        img.src = q.image;
         img.className = 'image-display';
         img.alt = q.answers[0];
         
+        // 画像が正しく読み込めたときの処理
         img.onload = () => {
             illustrationContainer.appendChild(img);
         };
+        // 画像が読み込めなかったときの処理（絵文字を表示）
         img.onerror = () => {
             const emojiDiv = document.createElement('div');
             emojiDiv.className = 'emoji-display';
@@ -849,6 +850,21 @@
             emojiDiv.innerText = q.emojiOverride || q.emoji;
             illustrationContainer.appendChild(emojiDiv);
         };
+
+        // 画像の場所（パス）を正しいものに直します
+        let imagePath = q.image;
+        if (imagePath && imagePath.startsWith('assets/')) {
+            imagePath = '../' + imagePath;
+        }
+
+        // 画像を表示します（古い画像データが残らないようにします）
+        if (imagePath) {
+            const connector = imagePath.includes('?') ? '&' : '?';
+            img.src = `${imagePath}${connector}t=${new Date().getTime()}`;
+        } else {
+            // 画像がない場合は、絵文字を表示する処理を動かします
+            img.onerror();
+        }
 
         // 画面初期化
         recognizedWord.innerText = '（お返事待ち）';
