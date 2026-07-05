@@ -1042,8 +1042,17 @@
             // 段階的にヒントを出し、3回間違えたらパスボタンを出す
             if (wrongCount === 1) {
                 hintTitle.innerText = '💡 第１ヒント：説明と文字数';
-                hintContent.innerText = `${q.hint1} \n （${q.meaning}）`;
-                speakText('第１ヒントです。' + q.hint1.replace(/〇/g, 'まる') + 'で、' + q.meaning);
+                
+                // 「〇 〇 (２文字)」 を 「２文字です」 に直します
+                let displayHint1 = '';
+                if (q.hint1 === '文字数が多いのでヒント') {
+                    displayHint1 = `${q.answers[0].length}文字です`;
+                } else {
+                    displayHint1 = q.hint1.replace(/[〇\s()（）]/g, '') + 'です';
+                }
+
+                hintContent.innerText = `${displayHint1} \n （${q.meaning}）`;
+                speakText('第１ヒントです。' + displayHint1 + '。' + q.meaning);
             } else if (wrongCount === 2) {
                 hintTitle.innerText = '💡 第２ヒント：最初の文字';
                 hintContent.innerText = q.hint2;
