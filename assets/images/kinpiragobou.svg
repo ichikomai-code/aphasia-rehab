@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- 背景 -->
+  <rect width="500" height="500" fill="#FFFFFF"/>
+  
+  <!-- 小鉢（器）の影 -->
+  <ellipse cx="250" cy="350" rx="160" ry="60" fill="#E6ECF2"/>
+  
+  <!-- 小鉢（器） -->
+  <ellipse cx="250" cy="340" rx="150" ry="70" fill="#F4F7FA" stroke="#D0D9E0" stroke-width="8"/>
+  <ellipse cx="250" cy="330" rx="130" ry="50" fill="#E2EBF5"/>
+  
+  <!-- 下層のごぼう（濃い茶色） -->
+  <line x1="160" y1="320" x2="270" y2="330" stroke="#7A451C" stroke-width="12" stroke-linecap="round"/>
+  <line x1="200" y1="340" x2="310" y2="310" stroke="#7A451C" stroke-width="12" stroke-linecap="round"/>
+  <line x1="180" y1="300" x2="290" y2="340" stroke="#7A451C" stroke-width="12" stroke-linecap="round"/>
+  <line x1="220" y1="310" x2="330" y2="330" stroke="#7A451C" stroke-width="12" stroke-linecap="round"/>
+  <line x1="150" y1="335" x2="260" y2="315" stroke="#7A451C" stroke-width="12" stroke-linecap="round"/>
+  <line x1="250" y1="345" x2="340" y2="325" stroke="#7A451C" stroke-width="12" stroke-linecap="round"/>
+  
+  <!-- 下層のにんじん（濃いオレンジ） -->
+  <line x1="170" y1="330" x2="260" y2="310" stroke="#D45000" stroke-width="9" stroke-linecap="round"/>
+  <line x1="210" y1="305" x2="290" y2="335" stroke="#D45000" stroke-width="9" stroke-linecap="round"/>
+  <line x1="230" y1="340" x2="320" y2="320" stroke="#D45000" stroke-width="9" stroke-linecap="round"/>
+  
+  <!-- 上層のごぼう（少し明るい茶色） -->
+  <line x1="180" y1="330" x2="290" y2="320" stroke="#8F562B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="150" y1="310" x2="250" y2="340" stroke="#8F562B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="240" y1="325" x2="330" y2="305" stroke="#8F562B" stroke-width="12" stroke-linecap="round"/>
+  <line x1="210" y1="320" x2="300" y2="340" stroke="#8F562B" stroke-width="12" stroke-linecap="round"/>
+  
+  <!-- 上層のにんじん（鮮やかなオレンジ） -->
+  <line x1="190" y1="320" x2="280" y2="330" stroke="#FF751A" stroke-width="9" stroke-linecap="round"/>
+  <line x1="160" y1="325" x2="240" y2="305" stroke="#FF751A" stroke-width="9" stroke-linecap="round"/>
+  <line x1="250" y1="310" x2="320" y2="335" stroke="#FF751A" stroke-width="9" stroke-linecap="round"/>
+  
+  <!-- ごま（黒と白の小さな粒） -->
+  <circle cx="210" cy="320" r="3.5" fill="#222222"/>
+  <circle cx="230" cy="330" r="3.5" fill="#FFFFFF"/>
+  <circle cx="180" cy="315" r="3.5" fill="#222222"/>
+  <circle cx="260" cy="325" r="3.5" fill="#FFFFFF"/>
+  <circle cx="280" cy="315" r="3.5" fill="#222222"/>
+  <circle cx="295" cy="330" r="3.5" fill="#FFFFFF"/>
+  <circle cx="245" cy="315" r="3.5" fill="#222222"/>
+  <circle cx="200" cy="335" r="3.5" fill="#FFFFFF"/>
+  <circle cx="315" cy="320" r="3.5" fill="#222222"/>
+  <circle cx="170" cy="325" r="3.5" fill="#FFFFFF"/>
+  <circle cx="225" cy="310" r="3.5" fill="#222222"/>
+  <circle cx="270" cy="335" r="3.5" fill="#222222"/>
+  <circle cx="190" cy="310" r="3.5" fill="#FFFFFF"/>
+  <circle cx="240" cy="340" r="3.5" fill="#222222"/>
+  <circle cx="325" cy="315" r="3.5" fill="#FFFFFF"/>
+  
+</svg>
